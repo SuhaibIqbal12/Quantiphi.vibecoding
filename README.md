@@ -73,6 +73,19 @@ The responsive catalog has a sticky desktop sidebar and a collapsible mobile fil
 
 `frontend/src/components/` contains reusable filter, slider, toolbar, result, card and rating components. `hooks/useCatalog.js` owns request and interaction state; `lib/api.js` serializes query parameters. No client filtering or sorting is performed.
 
-Seven automated frontend tests exercise control updates, keyboard operation of both price thumbs, reset from empty results, error/retry, stale-response protection, mobile panel expansion and image fallback. These use jsdom and mocked HTTP responses; they do not verify browser layout, pointer dragging, external images or live end-to-end behavior. Browser visual and end-to-end verification remain pending because the cloud browser cannot access this workspace's loopback server.
+Seven automated frontend tests exercise control updates, keyboard operation of both price thumbs, reset from empty results, error/retry, stale-response protection, mobile panel expansion and image fallback. These use jsdom and mocked HTTP responses; they do not verify browser layout, pointer dragging, external images or live end-to-end behavior. Live React-to-Vite-to-FastAPI integration is additionally covered by five real HTTP tests. Browser visual verification remains pending because the cloud browser cannot access this workspace's loopback server.
 
 Images use external Unsplash URLs and require internet access. Image availability must be checked during UI verification. Do not modify or push the assessment repository after the organizer's confirmed cutoff. The provided materials conflict (12:00 PM submission line versus 1:00–2:30 PM round); the round announcement states 2:30 PM IST.
+
+## Live frontend/backend integration tests
+
+With both apps running using the commands above, run in another terminal:
+
+```sh
+cd frontend
+npm run test:integration
+```
+
+This mounts the real React application in jsdom and sends actual HTTP requests through the Vite proxy on port 5173 to FastAPI on port 8000. Product responses are not mocked. Set `CATALOG_BASE_URL` if Vite runs elsewhere. Tests cover category selection/clearing, ratings 1–5, combined filters with both sorting orders, both slider bounds and both reset actions. Normal `npm test` runs the separate mocked component suite, including errors and stale responses.
+
+The integration harness uses Node's native AbortController to match Node fetch's signal requirements. This adaptation is test-only; browser code uses the browser's native AbortController. These tests verify React interactions and real network integration, not CSS rendering, pointer gestures or external images.

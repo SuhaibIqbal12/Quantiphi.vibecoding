@@ -27,3 +27,18 @@
 - The first slider test dispatched a key event without focusing the second thumb. Updated the test to focus each thumb, matching actual keyboard use; both bounds now pass.
 - No backend business logic was moved to the frontend.
 - Cloud browser access remains unavailable for workspace localhost. Visual desktop/mobile layout, pointer dragging and external image loading have not been browser-verified.
+
+## Live integration stage
+
+- Started both apps together, with Vite forwarding `/api` requests to the running FastAPI service.
+- `npm run test:integration`: **5 passed**, exercising actual HTTP responses rather than fixtures.
+- Confirmed initial 40 products; Electronics returns 8; Electronics + Footwear returns 16; clearing both returns 40.
+- Confirmed minimum ratings 1–5 and clearing the rating, comparing rendered names and count with actual backend responses.
+- Confirmed category + rating intersections with price ascending and rating descending sorting, preserving server product order in React.
+- Confirmed lower price 150 and upper price 14998 produce 38 products; Reset all restores 40 and removes query restrictions.
+- Confirmed Apparel + minimum rating 5 produces the required empty state; Reset Filters clears categories, price, rating and sorting and restores all 40 products.
+- Rechecked `python -m pytest -q`: **166 passed** (one upstream deprecation warning).
+- Rechecked `npm test`: **7 passed**, including simulated stale responses, errors/retry and reset controls.
+- Rechecked `npm run build`: passed.
+- Initial live harness failures came from jsdom AbortSignal incompatibility with Node fetch and an incorrect Radix End-key assumption. Corrected the test harness and scenario; no application-code fixes were needed.
+- Real-browser visual layout, pointer dragging and external image loading remain unverified. Live HTTP integration and jsdom interaction tests do not remove that limitation.
