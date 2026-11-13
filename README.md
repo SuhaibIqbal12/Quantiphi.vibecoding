@@ -1,121 +1,212 @@
-# Quantiphi Product Multi-Filter Catalog
+# Quantiphi E-Commerce Product Catalog
 
-React + Vite + Tailwind CSS frontend and Python FastAPI backend. No database is required: the inventory is a validated JSON array of 40 products priced in INR.
+A responsive marketplace browsing interface built for the Quantiphi Vibe Coding assessment. Browse 40 realistic products across five categories using category selection, a genuine two-thumb price slider and a minimum star rating. Every control updates the catalog automatically through FastAPI; there is no Submit button and no browser-side filtering or sorting.
 
-## Run locally
+**Repository:** https://github.com/SuhaibIqbal12/Quantiphi.vibecoding
 
-Requires Python 3.10+ and Node.js 20.19+.
+**Live demo:** Suhaib Vercel sign-in verified; deployment pending final push approval. No public URL is claimed yet.
 
-Backend (from the repository root):
+## Features
+
+- Sticky desktop filter sidebar and collapsible mobile panel.
+- Multiple category checkboxes, inclusive min/max price bounds, and minimum ratings from 1 to 5.
+- Responsive product cards with image, name, INR price and rating.
+- Featured order, Price: Low to High and Top Rated First.
+- Server-calculated matching count, loading skeletons, API errors with retry and image fallback.
+- Empty-results screen and Reset Filters; Reset all also clears sorting.
+- Request cancellation and stale-response protection for rapid changes.
+- No database, authentication keys or paid API services required.
+
+## Technology and requirements
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | React, Vite, Tailwind CSS, Radix Slider |
+| Backend | Python, FastAPI, Pydantic, Uvicorn |
+| Inventory | Validated JSON array, 40 products in INR |
+| Testing | pytest, FastAPI TestClient, Vitest, Testing Library, jsdom |
+| Optional hosting | Vercel frontend/backend services or Docker |
+
+Install Python 3.10+ (3.12 recommended), Node.js 22+ and Git. Internet access is needed for installation and externally hosted product images.
+
+## Installation
+
+Clone the public repository:
+
+```sh
+git clone https://github.com/SuhaibIqbal12/Quantiphi.vibecoding.git
+cd Quantiphi.vibecoding
+```
+
+Create the backend environment:
 
 ```sh
 cd backend
 python -m venv .venv
-# macOS/Linux
-source .venv/bin/activate
-# Windows PowerShell instead: .venv\Scripts\Activate.ps1
-python -m pip install -r requirements-dev.txt
-python -m uvicorn app.main:app --reload --port 8000
 ```
 
-Frontend in a second terminal:
+Activate it using the command for your terminal:
+
+| Terminal | Command |
+| --- | --- |
+| Windows PowerShell | `.venv\Scripts\Activate.ps1` |
+| Windows Command Prompt | `.venv\Scripts\activate.bat` |
+| macOS/Linux | `source .venv/bin/activate` |
+
+Install backend runtime and test dependencies:
+
+```sh
+python -m pip install -r requirements-dev.txt
+```
+
+For exactly the Python dependency versions used in verification, install `requirements-lock.txt` instead. Frontend dependencies are locked by `package-lock.json`.
+
+In a second terminal, from the repository root:
 
 ```sh
 cd frontend
 npm ci
+```
+
+## Start the application
+
+Backend terminal, inside `backend/` with the virtual environment activated:
+
+```sh
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+Frontend terminal, inside `frontend/`:
+
+```sh
 npm run dev
 ```
 
-Open http://localhost:5173. Vite proxies `/api` to FastAPI on port 8000. Interactive API documentation: http://localhost:8000/docs.
+- Catalog: http://127.0.0.1:5173
+- Interactive API documentation: http://127.0.0.1:8000/docs
+- Health endpoint: http://127.0.0.1:8000/api/health
 
-## API contract
+Vite forwards `/api` requests to port 8000, so both processes must be running in development. The frontend uses relative API URLs; no client-side secret or API key is required.
 
-- `GET /api/health`: service readiness.
-- `GET /api/catalog`: categories, price limits and currency calculated on the server.
-- `GET /api/products`: `{ "products": [...], "total": 40, "currency": "INR" }`.
+## API reference
 
-Example:
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/health` | Returns `{ "status": "ok" }` |
+| `GET /api/catalog` | Server-derived categories, price limits and currency |
+| `GET /api/products` | Filtered and sorted products, matching total and currency |
+
+| Query parameter | Accepted values |
+| --- | --- |
+| `categories` | Repeat for multiple categories: Electronics, Apparel, Footwear, Home & Living, Sports & Outdoors |
+| `min_price` | Finite number greater than or equal to 0; inclusive |
+| `max_price` | Finite number greater than or equal to 0; inclusive |
+| `min_rating` | Finite number from 1 to 5; inclusive minimum |
+| `sort` | `default`, `price_asc`, `price_desc`, `rating_desc` |
+
+Examples:
 
 ```text
-/api/products?categories=Electronics&categories=Footwear&min_price=699&max_price=5000&min_rating=4&sort=price_asc
+http://127.0.0.1:8000/api/products
+http://127.0.0.1:8000/api/products?categories=Electronics
+http://127.0.0.1:8000/api/products?categories=Electronics&categories=Footwear&min_price=699&max_price=5000&min_rating=4&sort=price_asc
+http://127.0.0.1:8000/api/products?min_rating=4&sort=rating_desc
 ```
 
-Repeat `categories` for multiple selections. Categories are ORed; all other criteria intersect with AND. Prices are inclusive, and ratings are minimum thresholds (1–5, including decimals). Omit any filter to bypass it. Omit all filters to return all 40 products. Zero is a valid price boundary. Unknown categories, invalid numbers, non-finite numbers, out-of-range ratings, reversed price bounds and unsupported sorting receive HTTP 422.
+The response has this structure; the example below represents an empty result:
 
-Supported sorting: `default`, `price_asc`, `price_desc`, `rating_desc`. Filtering runs first; sorting uses a new result list and deterministic ID tie-breakers. Reset requests omit every filter and use default sorting. Explicit empty query strings are invalid; clear a filter by omitting it.
+```json
+{ "products": [], "total": 0, "currency": "INR" }
+```
 
-CORS defaults to localhost and 127.0.0.1 on port 5173. Set `CORS_ORIGINS` to a comma-separated origin list for other environments. No credentials are required.
+Products contain `id`, `name`, `category`, `price`, `rating` and `image`. Invalid categories, non-numeric or non-finite numbers, negative prices, reversed price bounds, ratings outside 1–5 and unsupported sort options return HTTP 422. Clear a filter by omitting its query parameter; empty strings are invalid. Zero is a valid price bound.
 
-## Tests and build
+CORS permits localhost and 127.0.0.1 on port 5173 by default. Override `CORS_ORIGINS` with a comma-separated list for other origins. The production same-origin setup does not require cross-origin requests.
+
+## Filter and sorting logic
+
+1. FastAPI validates the request values before processing.
+2. The backend loops through the original inventory. A product must match any selected category **AND** satisfy `min_price <= price <= max_price` **AND** meet `rating >= min_rating`.
+3. Unselected criteria are skipped. With no active filters, every product qualifies.
+4. Only after filtering does the backend sort the matching list. Product IDs provide deterministic tie-breaks; the original inventory is not mutated.
+5. The backend returns the matching count and products. React renders the response in that order.
+
+Category selection is OR within the category group: Electronics and Footwear means either category. All different filter groups intersect using AND. React only holds UI state, formats presentation values, serializes parameters and displays server responses. It performs no product filtering, sorting, matching counts or price-bound calculations.
+
+## Architecture
+
+| File or folder | Responsibility |
+| --- | --- |
+| `backend/app/main.py` | API routes, query validation, CORS and optional production static hosting |
+| `backend/app/catalog.py` | Inventory loading and filter-then-sort service |
+| `backend/app/models.py` | Product, category, sorting and response schemas |
+| `backend/app/data/products.json` | Master product inventory |
+| `backend/tests/` | Automated backend/API checks |
+| `frontend/src/App.jsx` | Page composition |
+| `frontend/src/components/` | Sidebar, slider, toolbar, cards, ratings and result states |
+| `frontend/src/hooks/useCatalog.js` | Selected state, requests, reset, retry and cancellation |
+| `frontend/src/lib/api.js` | Query serialization and HTTP response handling |
+| `frontend/src/test/` | Component tests and real HTTP integration tests |
+| `vercel.json` | Frontend/backend service routing for Vercel |
+
+## Tests and production build
+
+Backend, inside `backend/` with the environment activated:
 
 ```sh
-cd backend
 python -m pytest -q
-# From frontend/:
+```
+
+Frontend, inside `frontend/`:
+
+```sh
 npm test
 npm run build
 ```
 
-Tests cover a matrix of combinations, sorting, null inputs, inclusive boundaries, empty results/reset at the API level, invalid requests, CORS and source inventory immutability.
-
-## Structure
-
-- `backend/app/main.py`: API routes, query validation and CORS.
-- `backend/app/catalog.py`: inventory loading and filter-then-sort service.
-- `backend/app/models.py`: response and inventory schemas.
-- `backend/app/data/products.json`: 40-product inventory.
-- `backend/tests/`: automated backend/API tests.
-- `frontend/src/`: React presentation and Tailwind styling.
-
-## Catalog UI
-
-The responsive catalog has a sticky desktop sidebar and a collapsible mobile filter panel, category checkboxes, a genuine Radix two-thumb price slider, rating radios from 1 to 5, sorting dropdown, server product count, loading skeletons, retryable errors and an empty-results reset action. Reset all restores categories, full price bounds, any rating and featured ordering. Every change immediately requests server results, and obsolete requests are aborted and ignored.
-
-`frontend/src/components/` contains reusable filter, slider, toolbar, result, card and rating components. `hooks/useCatalog.js` owns request and interaction state; `lib/api.js` serializes query parameters. No client filtering or sorting is performed.
-
-Seven automated frontend tests exercise control updates, keyboard operation of both price thumbs, reset from empty results, error/retry, stale-response protection, mobile panel expansion and image fallback. These use jsdom and mocked HTTP responses; they do not verify browser layout, pointer dragging, external images or live end-to-end behavior. Live React-to-Vite-to-FastAPI integration is additionally covered by five real HTTP tests. Browser visual verification remains pending because the cloud browser cannot access this workspace's loopback server.
-
-Images use external Unsplash URLs and require internet access. Image availability must be checked during UI verification. Do not modify or push the assessment repository after the organizer's confirmed cutoff. The provided materials conflict (12:00 PM submission line versus 1:00–2:30 PM round); the round announcement states 2:30 PM IST.
-
-## Live frontend/backend integration tests
-
-With both apps running using the commands above, run in another terminal:
+With both development apps running, use another terminal inside `frontend/`:
 
 ```sh
-cd frontend
 npm run test:integration
 ```
 
-This mounts the real React application in jsdom and sends actual HTTP requests through the Vite proxy on port 5173 to FastAPI on port 8000. Product responses are not mocked. Set `CATALOG_BASE_URL` if Vite runs elsewhere. Tests cover category selection/clearing, ratings 1–5, combined filters with both sorting orders, both slider bounds and both reset actions. Normal `npm test` runs the separate mocked component suite, including errors and stale responses.
+The integration suite mounts React in jsdom and sends real HTTP requests through Vite to FastAPI. Product responses are not mocked. `CATALOG_BASE_URL` can point it at another running origin. The normal component suite uses mocked responses for errors, retry and stale-response scenarios.
 
-The integration harness uses Node's native AbortController to match Node fetch's signal requirements. This adaptation is test-only; browser code uses the browser's native AbortController. These tests verify React interactions and real network integration, not CSS rendering, pointer gestures or external images.
+Latest executed checks: **171 backend tests**, **9 frontend component tests**, **5 live integration tests**, and the frontend production build passed. Tests cover no filters, single/multiple categories, inclusive exact-price boundaries, rating thresholds, intersecting criteria, both sort orders, empty results/reset, invalid input, CORS, source immutability, API failures and stale responses.
 
-## Production hosting
+Build the frontend before backend tests to include the production static-hosting check; otherwise that one check is skipped. One upstream Starlette/AnyIO deprecation warning does not fail tests.
 
-The frontend and API can run on one origin. After `npm run build` in `frontend/`, start FastAPI from the root:
+See [QA_CHECKLIST.md](QA_CHECKLIST.md) and [VERIFICATION.md](VERIFICATION.md) for evidence and limitations. Real-browser responsive layout, pointer dragging and image rendering remain unverified because the cloud browser could not access the local preview. All 40 image URLs returned HTTP 200 after replacing one broken URL. Screenshots are omitted because no verified browser screenshots are available.
 
-```sh
-backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000
-```
+## Production deployment
 
-Open http://localhost:8000. FastAPI serves `frontend/dist` when it exists, while `/api` routes retain precedence. No separate API URL or CORS setup is needed for this same-origin mode.
+### Vercel
 
-A root Dockerfile builds the React assets and serves both parts with FastAPI. It respects the host-provided `PORT` (default 8000):
+Import this repository with the **repository root** as the root directory. `vercel.json` defines a Vite frontend and FastAPI backend in one project using Vercel Services (Beta). `/api/*`, `/docs` and `/openapi.json` go to FastAPI; other paths go to the frontend. The frontend and backend share an origin, so no API base URL needs to be configured.
+
+The service configuration is prepared but has not been built or deployed by Vercel yet. Browser sign-in is verified. Final source push approval and a READY deployment are still required before publishing a live URL.
+
+### One-process hosting
+
+After `npm run build` inside `frontend/`, start FastAPI. When `frontend/dist` exists, FastAPI serves the catalog at http://127.0.0.1:8000 and retains the API routes. This mode has been executed and tested directly.
+
+Optional Docker commands, from the repository root:
 
 ```sh
 docker build -t quantiphi-catalog .
 docker run --rm -p 8000:8000 quantiphi-catalog
 ```
 
-The Docker image itself has not been built in this workspace because Docker is unavailable. The equivalent production build and FastAPI static hosting were executed and tested directly.
+The image build itself remains unverified because Docker is unavailable in this workspace. The container binds to the host-provided `PORT`, defaulting to 8000.
 
-**Live deployment status:** Not published yet. The connected Render workspace was declined by the user, and the connected Vercel account returns no teams. Connect the intended hosting account before deployment. No public website URL has been claimed or added as a working link.
+## Viva: a simple explanation
 
-## Viva explanation
+“React remembers the categories, price range, rating and sort option selected by the user. Whenever one changes, it sends those values to FastAPI. The backend validates them and checks every product. Different filter groups use AND, so a product must satisfy all active restrictions; multiple selected categories use OR. Then the server sorts only the matching products, counts them and sends the result back. React displays that response. Reset clears the controls, and the backend returns all 40 products. Cancelling old requests and ignoring stale responses prevents rapid slider changes from showing outdated results.”
 
-1. React stores the selected controls, but it never filters the product inventory.
-2. A state change creates a URL with repeated category parameters and optional price/rating bounds.
-3. FastAPI validates input, then a service loops over the JSON inventory using AND across active filters and OR within categories.
-4. The service sorts only the matching results and returns the products with their count.
-5. React renders that response. AbortController and an active-request guard prevent old results from replacing newer ones.
-6. Reset restores the initial state, so the next request has no filtering restrictions and returns all 40 products.
+The backend also calculates the available categories and full price range from inventory. Frontend currency formatting and slider positioning are presentation tasks; the server remains the source of truth for accepted values and matching products.
+
+## Submission
+
+The public repository contains incremental commits for setup, backend processing, the catalog UI, integration tests and QA fixes. Dependencies, generated build files, virtual environments and environment secrets are excluded from Git.
+
+Submit the repository link on Unstop yourself. This project does not submit on your behalf. The supplied materials conflict on a 12:00 PM submission line versus the announced 1:00–2:30 PM round; confirm the applicable cutoff with the organizer. Do not edit, commit or push after the assessment deadline.

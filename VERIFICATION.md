@@ -53,3 +53,14 @@
 - Added production static asset serving and a Dockerfile. Docker is unavailable, so the image build is unverified; direct production execution passed.
 - Deployment is blocked pending the intended hosting account. The user declined the available Render workspace; Vercel returns no available teams. No working public URL has been claimed.
 - See QA_CHECKLIST.md for requirement-level PASS / NOT VERIFIED / BLOCKED status.
+
+## Final submission preparation
+
+- Rewrote README with overview, stack, requirements, platform-specific installation and startup commands, API examples, filter semantics, architecture, tests, hosting and a Viva explanation.
+- Verified ignore rules for node_modules, .venv, .env files, dist, .vercel and generated reports; audited tracked paths for those unwanted files.
+- Added Vercel Services configuration for Vite + FastAPI and Python 3.12 selection. Services is a Beta platform feature. Configuration validates against the fetched official schema using Draft7Validator; no remote build or deployment has been verified.
+- Final rerun: 171 backend tests, 9 frontend tests, 5 live HTTP integration tests and production build passed.
+- GitHub connected account has push/admin access and the repository is public. Existing meaningful commits were inspected.
+- Initial browser check showed the login page. A fresh tab subsequently verified the signed-in Suhaib dashboard at suhaibiqbal961-9497s-projects. No live deployment is claimed.
+- Final preparation is committed locally; the final push awaits the user's requested approval. Existing published code remains at eb22da4 until that approval is given and the push is verified.
+- No screenshots were added because no browser rendering screenshots were verified. No Unstop submission was performed.
