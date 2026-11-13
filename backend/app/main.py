@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
 from typing import Annotated
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .catalog import PRODUCTS, filter_products
 from .models import CatalogMetadata, Category, ProductPage, SortOrder
 
@@ -42,3 +44,9 @@ def products(
         raise HTTPException(status_code=422, detail="min_price must not exceed max_price")
     matches = filter_products(PRODUCTS, categories, min_price, max_price, min_rating, sort)
     return ProductPage(products=matches, total=len(matches))
+
+
+# A production build can share FastAPI's origin; API routes keep precedence.
+frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")

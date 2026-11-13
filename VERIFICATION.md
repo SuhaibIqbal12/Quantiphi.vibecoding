@@ -42,3 +42,14 @@
 - Rechecked `npm run build`: passed.
 - Initial live harness failures came from jsdom AbortSignal incompatibility with Node fetch and an incorrect Radix End-key assumption. Corrected the test harness and scenario; no application-code fixes were needed.
 - Real-browser visual layout, pointer dragging and external image loading remain unverified. Live HTTP integration and jsdom interaction tests do not remove that limitation.
+
+## Final QA
+
+- Backend: 171 passed, including exact-price boundaries and production HTML/API cohosting.
+- Frontend: 9 passed, including HTTP 422/500 errors and retry. Fixed misleading zero-result count on API failure.
+- Live integration: 5 passed against FastAPI's production same-origin setup on port 8000.
+- Frontend production build passed.
+- Checked all 40 image URLs with HTTP HEAD: 39 returned 200, one camping image returned 404. Replaced that URL with a verified HTTP 200 image. This checks URL availability, not visual rendering.
+- Added production static asset serving and a Dockerfile. Docker is unavailable, so the image build is unverified; direct production execution passed.
+- Deployment is blocked pending the intended hosting account. The user declined the available Render workspace; Vercel returns no available teams. No working public URL has been claimed.
+- See QA_CHECKLIST.md for requirement-level PASS / NOT VERIFIED / BLOCKED status.

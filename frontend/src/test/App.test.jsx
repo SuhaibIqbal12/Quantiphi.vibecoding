@@ -108,3 +108,16 @@ test('mobile filter button toggles accessible panel and image failure has fallba
   fireEvent.error(screen.getByRole('img', { name: product.name }));
   expect(screen.getByText('Image unavailable')).toBeInTheDocument();
 });
+
+test.each([422, 500])('HTTP %i shows a useful error without claiming zero matches', async status => {
+  fetchMock.mockImplementation(url => url === '/api/catalog' ? ok(metadata) : Promise.resolve({ ok: false, status }));
+  const user = userEvent.setup();
+  render(<App />);
+  const error = await screen.findByRole('alert');
+  expect(error).toHaveTextContent(status === 422 ? 'filter values are not valid' : 'could not load the catalog');
+  expect(screen.getByText('Catalog unavailable')).toBeInTheDocument();
+  expect(screen.queryByText(/products found/)).not.toBeInTheDocument();
+  fetchMock.mockImplementation(url => ok(url === '/api/catalog' ? metadata : page));
+  await user.click(screen.getByRole('button', { name: 'Try again' }));
+  expect(await screen.findByRole('heading', { name: product.name })).toBeInTheDocument();
+});

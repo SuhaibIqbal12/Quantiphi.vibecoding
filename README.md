@@ -89,3 +89,33 @@ npm run test:integration
 This mounts the real React application in jsdom and sends actual HTTP requests through the Vite proxy on port 5173 to FastAPI on port 8000. Product responses are not mocked. Set `CATALOG_BASE_URL` if Vite runs elsewhere. Tests cover category selection/clearing, ratings 1–5, combined filters with both sorting orders, both slider bounds and both reset actions. Normal `npm test` runs the separate mocked component suite, including errors and stale responses.
 
 The integration harness uses Node's native AbortController to match Node fetch's signal requirements. This adaptation is test-only; browser code uses the browser's native AbortController. These tests verify React interactions and real network integration, not CSS rendering, pointer gestures or external images.
+
+## Production hosting
+
+The frontend and API can run on one origin. After `npm run build` in `frontend/`, start FastAPI from the root:
+
+```sh
+backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000
+```
+
+Open http://localhost:8000. FastAPI serves `frontend/dist` when it exists, while `/api` routes retain precedence. No separate API URL or CORS setup is needed for this same-origin mode.
+
+A root Dockerfile builds the React assets and serves both parts with FastAPI. It respects the host-provided `PORT` (default 8000):
+
+```sh
+docker build -t quantiphi-catalog .
+docker run --rm -p 8000:8000 quantiphi-catalog
+```
+
+The Docker image itself has not been built in this workspace because Docker is unavailable. The equivalent production build and FastAPI static hosting were executed and tested directly.
+
+**Live deployment status:** Not published yet. The connected Render workspace was declined by the user, and the connected Vercel account returns no teams. Connect the intended hosting account before deployment. No public website URL has been claimed or added as a working link.
+
+## Viva explanation
+
+1. React stores the selected controls, but it never filters the product inventory.
+2. A state change creates a URL with repeated category parameters and optional price/rating bounds.
+3. FastAPI validates input, then a service loops over the JSON inventory using AND across active filters and OR within categories.
+4. The service sorts only the matching results and returns the products with their count.
+5. React renders that response. AbortController and an active-request guard prevent old results from replacing newer ones.
+6. Reset restores the initial state, so the next request has no filtering restrictions and returns all 40 products.

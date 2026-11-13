@@ -111,3 +111,23 @@ def test_cors_allowed_and_disallowed_origins():
     })
     assert blocked.status_code == 400
     assert 'access-control-allow-origin' not in blocked.headers
+
+
+@pytest.mark.parametrize('price', [149, 699, 4999, 14999])
+def test_equal_price_bounds_include_exact_matches(price):
+    response = client.get('/api/products', params={'min_price': price, 'max_price': price})
+    assert response.status_code == 200
+    body = response.json()
+    assert body['total'] > 0
+    assert all(item['price'] == price for item in body['products'])
+
+
+def test_production_frontend_and_api_can_share_an_origin():
+    from app.main import frontend_dist
+    if not frontend_dist.is_dir():
+        pytest.skip('Build the frontend to test production asset hosting')
+    response = client.get('/')
+    assert response.status_code == 200
+    assert '<div id="root">' in response.text
+    assert client.get('/api/products').json()['total'] == 40
+    assert client.get('/api/not-an-endpoint').status_code == 404

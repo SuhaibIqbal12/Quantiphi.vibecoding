@@ -26,7 +26,7 @@ export default function App() {
       <div className="grid items-start gap-7 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-8">
         {metadata && <FilterSidebar metadata={metadata} filters={filters} onChange={setFilters} onReset={reset} mobileOpen={mobileOpen}/>}
         <section aria-label="Product catalog" aria-busy={loading} className="min-w-0">
-          <CatalogToolbar total={error ? 0 : result?.total} loading={loading} sort={filters.sort} onSort={sort => setFilters(previous => ({...previous, sort}))} mobileOpen={mobileOpen} toggleMobile={() => setMobileOpen(open => !open)}/>
+          <CatalogToolbar total={result?.total} loading={loading} error={error} sort={filters.sort} onSort={sort => setFilters(previous => ({...previous, sort}))} mobileOpen={mobileOpen} toggleMobile={() => setMobileOpen(open => !open)}/>
           <CatalogResults loading={loading} error={error} result={result} onReset={reset} onRetry={retry}/>
         </section>
       </div>
