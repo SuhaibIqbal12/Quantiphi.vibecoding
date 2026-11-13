@@ -52,6 +52,7 @@ CORS defaults to localhost and 127.0.0.1 on port 5173. Set `CORS_ORIGINS` to a c
 cd backend
 python -m pytest -q
 # From frontend/:
+npm test
 npm run build
 ```
 
@@ -66,10 +67,12 @@ Tests cover a matrix of combinations, sorting, null inputs, inclusive boundaries
 - `backend/tests/`: automated backend/API tests.
 - `frontend/src/`: React presentation and Tailwind styling.
 
-## Stage-one status
+## Catalog UI
 
-Implemented: backend filtering/sorting/validation, metadata, health endpoint, inventory, tests, and frontend scaffold displaying API products.
+The responsive catalog has a sticky desktop sidebar and a collapsible mobile filter panel, category checkboxes, a genuine Radix two-thumb price slider, rating radios from 1 to 5, sorting dropdown, server product count, loading skeletons, retryable errors and an empty-results reset action. Reset all restores categories, full price bounds, any rating and featured ordering. Every change immediately requests server results, and obsolete requests are aborted and ignored.
 
-Pending: sticky sidebar, category checklist, dual-handle price slider, rating radios, sorting dropdown, reset/empty screen, and browser interaction tests for those controls. This is an incremental foundation, not the finished assessment submission.
+`frontend/src/components/` contains reusable filter, slider, toolbar, result, card and rating components. `hooks/useCatalog.js` owns request and interaction state; `lib/api.js` serializes query parameters. No client filtering or sorting is performed.
+
+Seven automated frontend tests exercise control updates, keyboard operation of both price thumbs, reset from empty results, error/retry, stale-response protection, mobile panel expansion and image fallback. These use jsdom and mocked HTTP responses; they do not verify browser layout, pointer dragging, external images or live end-to-end behavior. Browser visual and end-to-end verification remain pending because the cloud browser cannot access this workspace's loopback server.
 
 Images use external Unsplash URLs and require internet access. Image availability must be checked during UI verification. Do not modify or push the assessment repository after the organizer's confirmed cutoff. The provided materials conflict (12:00 PM submission line versus 1:00–2:30 PM round); the round announcement states 2:30 PM IST.
