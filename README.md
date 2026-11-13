@@ -4,7 +4,9 @@ A responsive marketplace browsing interface built for the Quantiphi Vibe Coding 
 
 **Repository:** https://github.com/SuhaibIqbal12/Quantiphi.vibecoding
 
-**Live demo:** Suhaib Vercel sign-in verified; deployment pending final push approval. No public URL is claimed yet.
+**Live demo:** [https://quantiphi-vibecoding.vercel.app](https://quantiphi-vibecoding.vercel.app/)
+
+![Live product catalog](docs/screenshots/catalog-desktop.jpg)
 
 ## Features
 
@@ -176,7 +178,7 @@ Latest executed checks: **171 backend tests**, **9 frontend component tests**, *
 
 Build the frontend before backend tests to include the production static-hosting check; otherwise that one check is skipped. One upstream Starlette/AnyIO deprecation warning does not fail tests.
 
-See [QA_CHECKLIST.md](QA_CHECKLIST.md) and [VERIFICATION.md](VERIFICATION.md) for evidence and limitations. Real-browser responsive layout, pointer dragging and image rendering remain unverified because the cloud browser could not access the local preview. All 40 image URLs returned HTTP 200 after replacing one broken URL. Screenshots are omitted because no verified browser screenshots are available.
+See [QA_CHECKLIST.md](QA_CHECKLIST.md) and [VERIFICATION.md](VERIFICATION.md) for evidence and limitations. Live-browser desktop checks passed: initial inventory, combined category/rating filters, both sort orders, empty results, reset to all 40 products, and keyboard/pointer operation of both slider thumbs. Desktop layout and sticky sidebar were visually inspected. Mobile visual layout remains unverified because this browser does not expose viewport resizing. All 40 image URLs returned HTTP 200 after replacing one broken URL; visible desktop thumbnails rendered successfully. A verified live desktop screenshot is included above.
 
 ## Production deployment
 
@@ -184,7 +186,7 @@ See [QA_CHECKLIST.md](QA_CHECKLIST.md) and [VERIFICATION.md](VERIFICATION.md) fo
 
 Import this repository with the **repository root** as the root directory. `vercel.json` defines a Vite frontend and FastAPI backend in one project using Vercel Services (Beta). `/api/*`, `/docs` and `/openapi.json` go to FastAPI; other paths go to the frontend. The frontend and backend share an origin, so no API base URL needs to be configured.
 
-The service configuration is prepared but has not been built or deployed by Vercel yet. Browser sign-in is verified. Final source push approval and a READY deployment are still required before publishing a live URL.
+The application is deployed to production at [quantiphi-vibecoding.vercel.app](https://quantiphi-vibecoding.vercel.app/). Both services built successfully from this repository. Twelve unauthenticated production API checks passed, including combined filters, sorting, inclusive boundaries, empty results and invalid requests. The live frontend was additionally tested through actual browser interactions.
 
 ### One-process hosting
 
